@@ -271,3 +271,68 @@ Verified:
     in the same disciplined way.
   - The countdown to the hackathon submission:
     Sunday 25 October 2026, 18:30–19:00 SAST.
+
+## 2026-10-14 — Chamber A4, The Loan (STOPPED AT STEP 9 — NOT SEALED)
+
+Completed: the full XLS-66 loan code. lib/loan.ts (7,973 B / 257 ln):
+LoanSet dual-signature (broker signs first via wallet.sign, borrower
+second via signLoanSetByCounterparty — the xrpl.js XLS-66 counterparty
+mechanism read from disk), LoanPay (reads TotalValueOutstanding from
+the Loan node first, then pays with tfLoanFullPayment), LoanManage
+(typed, not wired — a later chamber's hook), extractLoanId (A2/A3
+pattern). lib/wallet.ts (1,130 B): getBorrowerWallet — the second
+signature needs a different key (XRPL_BORROWER_SEED, .env only).
+Three routes: create 1,370 B, pay 895 B, read 897 B. app/page.tsx
+(10,071 B / 323 ln): Loan section — Create Loan, both signatures, loan
+ID, principal/rate/term, borrower, clickable tx links, Repay, honest
+status. TYPES FROM DISK DIFFERED FROM THE BRIEF: no "Term" field
+(maps to PaymentTotal), no "Borrower" field (the Counterparty field).
+Dual-sign shape CONFIRMED from counterpartySigner.js — order enforced
+by the library itself (throws "must be first signed by first party").
+Verified: build 0/0, GET / 200, A3 broker EF433584...C168 still live.
+STOPPED: first real LoanSet returned tecINSUFFICIENT_FUNDS — broker
+liquidity rD5Df3... holds exactly 1 XRP (the A3 cover), the default
+principal is 1 XRP. The loan SIGNED correctly (both signatures
+produced); it failed on funds, not shape. No blind retry. No commit —
+the commit message would assert a lifecycle that did not validate.
+Safety grep: case-sensitive 0; case-insensitive 4, all the known
+fetch "method:" false positive.
+Next single action: the Architect rules the funding fix (more cover /
+smaller principal / vault deposit), then A4 re-runs from the LoanSet.
+Next chamber after it seals: A5 — The Client.
+
+
+## 2026-10-14 — Chamber A4 (resumed), Fund + Polish (STOPPED — NOT SEALED)
+
+ITEM 1 DONE: broker liquidity funded via LoanBrokerCoverDeposit
+(the spec-named mechanism, loanBrokerCoverDeposit.d.ts):
+10 XRP, tx 47F5393A…5E08FA, tesSUCCESS, validated yes, liquidity
+1,000,000 -> 11,000,000 drops. Confirmed the cover deposit feeds
+the broker's Account (rD5Df3...).
+ITEM 2 BLOCKED: LoanSet re-run failed again — SAME
+tecINSUFFICIENT_FUNDS, and the meta now shows the owner with
+87.4 XRP. Funding was never the blocker. Ledger read-back found it:
+the broker's DebtMaximum is UNSET (0) — a DebtMaximum:0 broker
+accepts zero debt. The A3 closed-ended vault created it that way
+(explicitly recorded in A3: no debt maximum). The fix exists on disk
+(LoanBrokerSet takes optional LoanBrokerID + DebtMaximum for updates)
+but per the Head's rule — paste the error, no blind retry — the
+chamber stops and the Architect rules. extractLoanId stays
+UNRESOLVED. LoanPay never ran. Commit 68f3f69 (honest message, 9
+files, 619 insertions): the code + funding + polish, NOT a validated
+lifecycle.
+ITEM 3 DONE: clock polished. Clock.tsx (3,431 B / 112 ln): date built
+from getDate/getMonth/getFullYear — "1/10/2026", no leading zeros;
+time untouched. Terminal <div> with border per ledger state —
+live #22c55e green, error #b85450 red, fallback #f59e0b amber
+(honest labels: "Ledger time" / "Local time (ledger error)" /
+"Local time (ledger unreachable)"). CSS in globals.css (1,019 B).
+Build 0/0. GET / 200. Note: the ledger API's 500 is PRE-EXISTING
+(open ledger has no close_time); the new code handles it — that is
+exactly what the red state is for. Only layout-neutral additions;
+theme, layout untouched.
+Safety grep: case-sensitive 0 (public-safe); ci 5 — four fetch
+"method:" keys + this entry naming them. .env never staged.
+Next single action: the Architect rules the DebtMaximum fix. Then
+LoanSet -> LoanPay -> commit the validated seal. Then A5.
+

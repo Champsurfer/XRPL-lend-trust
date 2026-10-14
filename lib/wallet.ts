@@ -16,3 +16,22 @@ export async function getWallet(
   console.warn("Funded balance:", balance);
   return wallet;
 }
+
+export async function getBorrowerWallet(
+  client: Client
+): Promise<Wallet> {
+  // A4: the second signature of LoanSet and the signature of
+  // LoanPay belong to the borrower — a different key from the
+  // broker. Seed lives in .env (gitignored), never committed.
+  const seed = process.env.XRPL_BORROWER_SEED;
+  if (seed && seed.length > 0) {
+    return Wallet.fromSeed(seed);
+  }
+  const { wallet, balance } = await client.fundWallet();
+  console.warn(
+    "NEW BORROWER WALLET — save this seed in .env:",
+    wallet.seed
+  );
+  console.warn("Funded balance:", balance);
+  return wallet;
+}

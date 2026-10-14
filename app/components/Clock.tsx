@@ -65,15 +65,17 @@ export default function Clock() {
       hour12: false,
       timeZone: "Africa/Johannesburg",
     });
-    const date = d.toLocaleDateString("en-ZA", {
-      timeZone: "Africa/Johannesburg",
-    });
+    // Built from the parts, not toLocaleDateString — the local
+    // format adds leading zeros. "1/10/2026", not "2026/10/01".
+    const date = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
     return (
-      <div className="text-sm text-gray-500">
-        Ledger time (Devnet, ledger #{ledger.ledgerIndex}):{" "}
-        <span className="font-mono text-gray-300">
-          {date} {time} SAST
-        </span>
+      <div className="clock-clock clock-clock--live">
+        <div className="text-sm text-gray-500">
+          Ledger time (Devnet, ledger #{ledger.ledgerIndex}):{" "}
+          <span className="font-mono text-gray-300">
+            {date} {time} SAST
+          </span>
+        </div>
       </div>
     );
   }
@@ -85,15 +87,25 @@ export default function Clock() {
     hour12: false,
     timeZone: "Africa/Johannesburg",
   });
-  const date = t.toLocaleDateString("en-ZA", {
-    timeZone: "Africa/Johannesburg",
-  });
+  const date = `${t.getDate()}/${t.getMonth() + 1}/${t.getFullYear()}`;
+  // A fetch that answered with an error is the red state; no
+  // answer yet is the amber fallback.
+  const stateClass =
+    ledger && ledger.ok === false && ledger.error
+      ? "clock-clock clock-clock--error"
+      : "clock-clock clock-clock--fallback";
+  const label =
+    ledger && ledger.ok === false && ledger.error
+      ? "Local time (ledger error)"
+      : "Local time (ledger unreachable)";
   return (
-    <div className="text-sm text-gray-500">
-      Local time (ledger unreachable):{" "}
-      <span className="font-mono text-gray-300">
-        {date} {time} SAST
-      </span>
+    <div className={stateClass}>
+      <div className="text-sm text-gray-500">
+        {label}:{" "}
+        <span className="font-mono text-gray-300">
+          {date} {time} SAST
+        </span>
+      </div>
     </div>
   );
 }

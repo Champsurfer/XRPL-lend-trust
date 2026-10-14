@@ -25,6 +25,28 @@ type BrokerState = {
 
 type BrokerResult = { ok: true; broker: BrokerState } | { ok: false; error: string };
 
+type LoanState = {
+  loanId: string;
+  brokerId: string;
+  vaultId: string;
+  principal: string;
+  interestRate: number;
+  term: number;
+  borrower: string;
+  status: string;
+  txHashSet: string;
+  txHashPay: string | null;
+  brokerSignature: string;
+  borrowerSignature: string;
+};
+
+type LoanResult = { ok: true; loan: LoanState } | { ok: false; error: string };
+
+type PayResult = {
+  ok: true;
+  pay: { txHashPay: string; amount: string; status: string };
+} | { ok: false; error: string };
+
 export default function Home() {
   const [pending, setPending] = useState(false);
   const [vault, setVault] = useState<VaultState | null>(null);
@@ -32,6 +54,11 @@ export default function Home() {
   const [brokerPending, setBrokerPending] = useState(false);
   const [broker, setBroker] = useState<BrokerState | null>(null);
   const [brokerError, setBrokerError] = useState<string | null>(null);
+  const [loanPending, setLoanPending] = useState(false);
+  const [loan, setLoan] = useState<LoanState | null>(null);
+  const [loanError, setLoanError] = useState<string | null>(null);
+  const [payPending, setPayPending] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
 
   async function createVault() {
     setPending(true);
@@ -71,6 +98,56 @@ export default function Home() {
       setBrokerError(err instanceof Error ? err.message : String(err));
     } finally {
       setBrokerPending(false);
+    }
+  }
+
+  async function createLoanRow() {
+    if (!broker) return;
+    setLoanPending(true);
+    setLoanError(null);
+    setPayError(null);
+    try {
+      const res = await fetch("/api/loan/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brokerId: broker.brokerId,
+          vaultId: broker.vaultId,
+        }),
+      });
+      const data = (await res.json()) as LoanResult;
+      if (data.ok) {
+        setLoan(data.loan);
+      } else {
+        setLoanError(data.error);
+      }
+    } catch (err) {
+      setLoanError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoanPending(false);
+    }
+  }
+
+  async function repayLoan() {
+    if (!loan) return;
+    setPayPending(true);
+    setPayError(null);
+    try {
+      const res = await fetch("/api/loan/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loanId: loan.loanId }),
+      });
+      const data = (await res.json()) as PayResult;
+      if (data.ok) {
+        setLoan({ ...loan, status: data.pay.status, txHashPay: data.pay.txHashPay });
+      } else {
+        setPayError(data.error);
+      }
+    } catch (err) {
+      setPayError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPayPending(false);
     }
   }
 
@@ -161,6 +238,83 @@ export default function Home() {
         {broker
           ? `Broker: ${broker.brokerId} — cover ${broker.coverAvailable} drops`
           : "Broker: (none)"}
+      </div>
+
+      <button
+        onClick={createLoanRow}
+        disabled={!broker || loanPending}
+        className="mt-6 rounded bg-gray-200 px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+      >
+        {loanPending ? "Creating loan…" : "Create Loan"}
+      </button>
+
+      {loanError && (
+        <p className="mt-4 text-sm text-red-400">Error: {loanError}</p>
+      )}
+
+      {loan && (
+        <div className="mt-4 max-w-3xl rounded border border-gray-700 p-4 text-sm text-gray-300">
+          <p className="font-semibold text-gray-100">
+            Loan {loan.status === "repaid" ? "Repaid" : loan.status === "failed" ? "Failed" : "Active"}
+          </p>
+          <p>Loan ID: {loan.loanId}</p>
+          <p>
+            Principal: {loan.principal} drops (
+            {Number(loan.principal) / 1_000_000} XRP) · Rate:{" "}
+            {loan.interestRate} · Term: {loan.term} payments
+          </p>
+          <p>Borrower: {loan.borrower}</p>
+          <p className="mt-2 text-xs text-gray-500">Broker signature:</p>
+          <p className="break-all font-mono text-xs text-gray-400">
+            {loan.brokerSignature || "(none)"}
+          </p>
+          <p className="mt-1 text-xs text-gray-500">Borrower signature:</p>
+          <p className="break-all font-mono text-xs text-gray-400">
+            {loan.borrowerSignature || "(none)"}
+          </p>
+          <p className="mt-2">
+            Set tx:{" "}
+            <a
+              className="text-gray-300 underline"
+              href={`https://devnet.xrpl.org/transactions/${loan.txHashSet}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {loan.txHashSet}
+            </a>
+          </p>
+          {loan.txHashPay && (
+            <p>
+              Pay tx:{" "}
+              <a
+                className="text-gray-300 underline"
+                href={`https://devnet.xrpl.org/transactions/${loan.txHashPay}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {loan.txHashPay}
+              </a>
+            </p>
+          )}
+          {loan.status === "active" && (
+            <button
+              onClick={repayLoan}
+              disabled={payPending}
+              className="mt-3 rounded bg-gray-200 px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+            >
+              {payPending ? "Repaying…" : "Repay"}
+            </button>
+          )}
+          {payError && (
+            <p className="mt-2 text-sm text-red-400">Error: {payError}</p>
+          )}
+        </div>
+      )}
+
+      <div className="mt-4 text-sm text-gray-500">
+        {loan
+          ? `Loan: ${loan.loanId} — ${loan.status}`
+          : "Loan: (none)"}
       </div>
     </main>
   );
