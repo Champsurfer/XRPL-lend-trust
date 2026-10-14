@@ -13,10 +13,25 @@ type VaultState = {
 
 type VaultResult = { ok: true; vault: VaultState } | { ok: false; error: string };
 
+type BrokerState = {
+  brokerId: string;
+  vaultId: string;
+  coverAvailable: string;
+  coverRateMinimum: number;
+  coverRateLiquidation: number;
+  txHashCreate: string;
+  txHashCover: string;
+};
+
+type BrokerResult = { ok: true; broker: BrokerState } | { ok: false; error: string };
+
 export default function Home() {
   const [pending, setPending] = useState(false);
   const [vault, setVault] = useState<VaultState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [brokerPending, setBrokerPending] = useState(false);
+  const [broker, setBroker] = useState<BrokerState | null>(null);
+  const [brokerError, setBrokerError] = useState<string | null>(null);
 
   async function createVault() {
     setPending(true);
@@ -33,6 +48,29 @@ export default function Home() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setPending(false);
+    }
+  }
+
+  async function createBroker() {
+    if (!vault) return;
+    setBrokerPending(true);
+    setBrokerError(null);
+    try {
+      const res = await fetch("/api/broker/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vaultId: vault.vaultId }),
+      });
+      const data = (await res.json()) as BrokerResult;
+      if (data.ok) {
+        setBroker(data.broker);
+      } else {
+        setBrokerError(data.error);
+      }
+    } catch (err) {
+      setBrokerError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBrokerPending(false);
     }
   }
 
@@ -74,6 +112,55 @@ export default function Home() {
         {vault
           ? `Vault: ${vault.vaultId}`
           : "Vault: (none)"}
+      </div>
+
+      <button
+        onClick={createBroker}
+        disabled={!vault || brokerPending}
+        className="mt-6 rounded bg-gray-200 px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+      >
+        {brokerPending ? "Creating broker…" : "Create Broker"}
+      </button>
+
+      {brokerError && (
+        <p className="mt-4 text-sm text-red-400">Error: {brokerError}</p>
+      )}
+
+      {broker && (
+        <div className="mt-4 text-sm text-gray-400">
+          <p>
+            Broker created. Set tx:{" "}
+            <a
+              className="text-gray-300 underline"
+              href={`https://devnet.xrpl.org/transactions/${broker.txHashCreate}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {broker.txHashCreate}
+            </a>
+          </p>
+          <p>
+            Cover tx:{" "}
+            <a
+              className="text-gray-300 underline"
+              href={`https://devnet.xrpl.org/transactions/${broker.txHashCover}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {broker.txHashCover}
+            </a>
+          </p>
+          <p>
+            First-loss capital held: {broker.coverAvailable} drops (
+            {Number(broker.coverAvailable) / 1_000_000} XRP)
+          </p>
+        </div>
+      )}
+
+      <div className="mt-4 text-sm text-gray-500">
+        {broker
+          ? `Broker: ${broker.brokerId} — cover ${broker.coverAvailable} drops`
+          : "Broker: (none)"}
       </div>
     </main>
   );

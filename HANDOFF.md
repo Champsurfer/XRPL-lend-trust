@@ -2,6 +2,114 @@
 
 One entry per chamber. Newest at the top.
 
+## 2026-10-14 — Chamber A3, The Broker (SEALED)
+
+Completed:
+  - lib/broker.ts: LoanBrokerSet and
+    LoanBrokerCoverDeposit on Devnet. Types read from
+    disk first: VaultID required (64-hex), cover rates
+    optional (both zero is valid); cover deposit
+    requires a 64-hex LoanBrokerID + Amount. Broker ID
+    extraction resolved on the first real run, same
+    shape as the vault: AffectedNodes -> CreatedNode
+    with LedgerEntryType "LoanBroker" -> its
+    LedgerIndex.
+  - API routes /api/broker/create (POST) and
+    /api/broker/read (GET, ledger_entry on the
+    validated ledger).
+  - page.tsx: Create Broker button (disabled until the
+    vault exists), pending/success/error states, broker
+    card with both tx hashes clickable and the
+    first-loss capital held, "Broker: (none)" state
+    block.
+
+Evidence note — one failure, no blind retry:
+  - First LoanBrokerSet on A2's vault failed:
+    engine_result tecNO_PERMISSION, validated ledger
+    6112392, tx
+    5ED3C90C88C0D0DA7393EDCB9A886BE474600682FFB501F3EF94658653AE1F3C,
+    meta shows no LoanBroker node (precheck fired
+    before creation). Spec: a new broker requires a
+    closed-ended vault; A2's vault had no VaultKind
+    (open-ended — the old "Flags 0" belief was wrong).
+    lib/vault.ts fixed against the types on disk:
+    VaultKind 1 + SubscriptionDate/RedemptionDate. New
+    closed-ended vault created this chamber:
+    B437192F7652745B8FD4AC03FB088690CB1B386140AD0F39C0F113515ED6E414
+    (tx B12BEA4DCAC1BF71B061E2128A9789F544842049687EC12C149C008AA583092A,
+    VaultKind 1 read back from the ledger).
+
+Verified:
+  - build 0/0 before and after.
+  - LoanBrokerSet
+    CDC9C02C8A37A300F95D159039B3ED514945279408BDB4F8013C1F3638C960E3
+    -> tesSUCCESS, validated, ledger 6112688.
+  - LoanBrokerCoverDeposit
+    19C20851C36FB81F768D764D78BA027AB1C16980547D1B9D57C96AFF5010B8A1
+    -> tesSUCCESS, validated, ledger 6112690.
+  - Broker read-back:
+    EF433584FBC4CFA6680F9BF369550B061269F3110C24E214951B58D973F1C168
+    — LedgerEntryType LoanBroker, VaultID B437192F…,
+    Owner rEbTFzwx…, CoverAvailable 1000000 (1 XRP).
+  - Safety grep 0 (case-sensitive; two legacy headers
+    reworded this chamber), seed not in any committed
+    file.
+
+Not done, by design: the loan (A4), deposit and
+withdraw on the vault (A5 if needed).
+
+Next single action:
+  - Chamber A4 — The Loan.
+
+
+## 2026-10-14 — Chamber A2, The Vault (SEALED)
+
+Completed:
+  - Devnet connection (lib/client.ts), wallet
+    (lib/wallet.ts), VaultCreate (lib/vault.ts).
+    API routes /api/vault/create and
+    /api/ledger/current. Clock now reads the
+    ledger's time. Page shows the Create Vault
+    button and the vault tx hash.
+
+Verified:
+  - build 0/0, first transaction validated on
+    Devnet, tx hash 7E439485… opens on
+    devnet.xrpl.org, safety grep 0, seed not in
+    any committed file.
+
+First transaction (real Devnet evidence):
+  - POST /api/vault/create -> 200, ok:true
+  - txHash 7E4394851A1653C8C315809E4047EB189D13613CB2179955AF83A7D1DAD15F60
+  - engine_result tesSUCCESS (validated)
+  - URL https://devnet.xrpl.org/transactions/7E4394851A1653C8C315809E4047EB189D13613CB2179955AF83A7D1DAD15F60
+  - vaultId 11C86C75DEB5661C126D7619BD11CD97D5301FB13A8CD21AD6DB319E8185821F
+    (resolved this chamber — see below)
+
+Wallet: created fresh on first run (no seed in .env
+at start), funded 100 test XRP from the faucet, seed
+saved to .env (gitignored). Address only:
+rEbTFzwxPfUcgE3sTh9i1UyGSZLPuvUeoy. Seed never in any
+committed file.
+
+Two build fixes, both evidence-based:
+  - TS2345 on the VaultCreate tx object. Read the
+    xrpl.js types from disk (VaultCreate extends
+    BaseTransaction; Asset: Currency). Fixed by
+    typing the tx as VaultCreate (imported from
+    xrpl) instead of an inline literal.
+  - extractVaultId was a placeholder returning null.
+    Captured the real meta from the validated tx:
+    the vault is the AffectedNode whose CreatedNode
+    has LedgerEntryType "Vault"; its ID is that
+    node's LedgerIndex (confirmed — the vault's
+    AccountRoot carries the same value in VaultID).
+    Filled the real path. vaultId now resolves.
+
+Next single action:
+  - Chamber A3 — The Broker.
+
+
 ## 2026-10-14 — Chamber A1-fix, The Placeholder Clock (SEALED)
 
 Completed:
@@ -15,7 +123,7 @@ Verified:
   - build 0/0, page loads (HTTP 200), safety grep 0,
     commit f7d68c0.
 
-Method note: the clock is a "use client" component.
+Implementation note: the clock is a "use client" component.
 Server render shows "Local time: loading…" (the
 now=null guard prevents the SSR/CSR mismatch); the
 browser effect then sets the real time and renders
@@ -48,7 +156,7 @@ Verified:
   - build 0/0, page loads (HTTP 200, "XRPLendTrust"
     in HTML), safety grep 0, commit hash 5e871a4.
 
-Method note (Architect ruling): create-next-app refused
+Implementation note (Architect ruling): create-next-app refused
 in place — npm rejects the capital letters in the
 derived name "XRPL-lend-trust". Scaffolded in a temp
 dir with a lowercase name, moved the source files in,

@@ -12,11 +12,23 @@ export async function createVault(
   client: Client,
   wallet: Wallet
 ): Promise<VaultState> {
+  // Closed-ended, read from disk (vaultCreate.d.ts):
+  // VaultKind: 1 = vaultKindClosed; SubscriptionDate and
+  // RedemptionDate are then required, both ahead of the ledger
+  // close time, gap within [180, 946708560) seconds.
+  // A3 evidence: without VaultKind the vault is open-ended and
+  // LoanBrokerSet fails tecNO_PERMISSION on Devnet (spec:
+  // "creating a new LoanBroker and the associated vault isn't
+  // closed-ended"). A2's "Flags 0 = closed-ended" was wrong.
+  const nowRipple = Math.floor(Date.now() / 1000) - 946684800;
   const tx: VaultCreate = {
     TransactionType: "VaultCreate",
     Account: wallet.classicAddress,
     Asset: { currency: "XRP" },
-    Flags: 0, // closed-ended
+    Flags: 0,
+    VaultKind: 1, // close-ended
+    SubscriptionDate: nowRipple + 3600,
+    RedemptionDate: nowRipple + 3600 + 31536000, // 1-year investment period
   };
   const prepared = await client.autofill(tx);
   const signed = wallet.sign(prepared);
