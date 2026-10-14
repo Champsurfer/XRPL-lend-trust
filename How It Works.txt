@@ -1,0 +1,17 @@
+  Liquidity Provider          Loan Broker               Borrower
+        │                          │                       │
+        │  VaultDeposit            │                       │
+        ├─────────────────────────►│                       │
+        │                          │  LoanBrokerSet        │
+        │                          ├──────────────────────►│
+        │                          │  LoanBrokerCoverDeposit
+        │                          │                       │
+        │                          │  LoanSet (broker sign)│
+        │                          ├──────────────────────►│
+        │                          │  LoanSet (borrower sign)
+        │                          │◄──────────────────────┤
+        │                          │                       │
+        │                          │  LoanPay              │
+        │                          │◄──────────────────────┤
+        │  VaultWithdraw           │                       │
+        │◄─────────────────────────┤                       │

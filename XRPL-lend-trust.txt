@@ -1,0 +1,27 @@
+XRPLendTrust/
+├── README.md                    ← C1, the front door
+├── ARCHITECTURE.md              ← C2
+├── SETUP.md                     ← C3
+├── TESTING.md                   ← C4
+├── DEMO.md                      ← C5
+├── HELP/                        ← C6
+│   ├── ERRORS.md
+│   ├── DEVNET.md
+│   └── FAQ.md
+├── LICENSE                      ← MIT (public submission)
+├── .gitignore                   ← catches .env, no secrets
+├── package.json
+├── next.config.ts
+├── app/                         ← A1 scaffold lands here
+│   ├── page.tsx
+│   └── ...
+├── lib/
+│   ├── vault.ts                 ← A2 XLS-65
+│   ├── broker.ts                ← A3 XLS-66
+│   ├── loan.ts                  ← A4 XLS-66
+│   └── client.ts                ← A5 the face
+├── tests/                       ← B1, B2
+│   ├── unit/
+│   └── integration/
+└── proof/                       ← B3
+    └── devnet-hashes.md
