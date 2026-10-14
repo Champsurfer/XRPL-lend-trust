@@ -2,6 +2,36 @@
 
 One entry per chamber. Newest at the top.
 
+## 2026-10-14 — Chamber A1, The Scaffold (SEALED)
+
+Completed:
+  - Next.js 16 scaffold created in place. React 19,
+    TypeScript, Tailwind CSS. xrpl.js installed.
+  - Folder structure from ARCHITECTURE.md: lib/,
+    tests/unit/, tests/integration/, proof/, HELP/.
+  - Placeholder files in lib/: vault.ts, broker.ts,
+    loan.ts, client.ts.
+  - One page: app/page.tsx reads "XRPLendTrust".
+  - Clean build. First git commit.
+
+Verified:
+  - build 0/0, page loads (HTTP 200, "XRPLendTrust"
+    in HTML), safety grep 0, commit hash 5e871a4.
+
+Method note (Architect ruling): create-next-app refused
+in place — npm rejects the capital letters in the
+derived name "XRPL-lend-trust". Scaffolded in a temp
+dir with a lowercase name, moved the source files in,
+preserved all 5 docs (README restored from backup after
+the boilerplate README overwrote it), package.json name
+set to "xrpl-lend-trust". commit.gpgsign set false for
+this repo (no gpg installed). 3 stray non-doc files
+left in place per the Architect's call.
+
+Next single action:
+  - Chamber A2 — The Vault.
+
+
 ## 2026-10-14 — Chamber C1-fix, The Polish (SEALED)
 
 Completed:
