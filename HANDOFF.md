@@ -2,6 +2,36 @@
 
 One entry per chamber. Newest at the top.
 
+## 2026-10-14 — Chamber A1-fix, The Placeholder Clock (SEALED)
+
+Completed:
+  - Clock component added at app/components/Clock.tsx.
+    Rendered above the title in app/page.tsx. Shows
+    browser local time in SAST (Africa/Johannesburg),
+    labeled as a placeholder. Real ledger clock
+    arrives in A2.
+
+Verified:
+  - build 0/0, page loads (HTTP 200), safety grep 0,
+    commit f7d68c0.
+
+Method note: the clock is a "use client" component.
+Server render shows "Local time: loading…" (the
+now=null guard prevents the SSR/CSR mismatch); the
+browser effect then sets the real time and renders
+"Local time (ledger clock arrives in A2): <date>
+<time> SAST". A raw fetch sees only the pre-hydration
+"loading…" state (no JS runs in Invoke-WebRequest);
+the hydrated strings ("ledger clock arrives in A2",
+"SAST", "Africa/Johannesburg") are confirmed present
+in the built client bundle (.next/*.js, 12 hits). The
+live ticking itself is not observable via fetch —
+noted honestly.
+
+Next single action:
+  - Chamber A2 — The Vault.
+
+
 ## 2026-10-14 — Chamber A1, The Scaffold (SEALED)
 
 Completed:
