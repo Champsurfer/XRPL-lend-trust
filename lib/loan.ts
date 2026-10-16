@@ -32,6 +32,7 @@ export interface LoanState {
 // PaymentInterval) complete the schedule.
 const PAYMENT_INTERVAL = 2592000; // 30 days in seconds
 const GRACE_PERIOD = 86400; // 1 day, <= PAYMENT_INTERVAL
+const MIN_PAYMENT_INTERVAL = 60; // validator floor (loanSet.js on disk)
 
 export async function createLoan(
   client: Client,
@@ -52,6 +53,70 @@ export async function createLoan(
   //   3. The combined blob is submitted. This is NOT a top-level
   //      SignerList multisign — it is XLS-66's nested
   //      CounterpartySignature structure.
+  // SCHEDULE FIT — tecNO_PERMISSION cause 3: the final scheduled
+  // payment (origination + PaymentInterval * PaymentTotal) must land
+  // at least 60s before the vault's RedemptionDate (go-xrpl:
+  // finalPayment + vault.LoanRedemptionBuffer > RedemptionDate).
+  // Ruling: shorten the term first, then the interval (validator
+  // MIN 60). If no legal schedule fits the window, fail loudly —
+  // the vault needs a longer RedemptionDate, not another retry.
+  const vaultNode = (
+    await client.request({
+      command: "ledger_entry",
+      index: vaultId,
+      ledger_index: "validated",
+    })
+  ).result.node as { SubscriptionDate?: number; RedemptionDate?: number };
+  const nowRipple = Math.floor(Date.now() / 1000) - 946684800;
+  if (
+    typeof vaultNode.SubscriptionDate === "number" &&
+    typeof vaultNode.RedemptionDate === "number" &&
+    (nowRipple < vaultNode.SubscriptionDate ||
+      nowRipple >= vaultNode.RedemptionDate)
+  ) {
+    // Mirrors the server rule: loans originate only in the Investment
+    // phase — fail with a clear message instead of a bare tecNO_PERMISSION.
+    throw new Error(
+      "vault not in Investment phase (now " +
+        nowRipple +
+        ", SubscriptionDate " +
+        vaultNode.SubscriptionDate +
+        ", RedemptionDate " +
+        vaultNode.RedemptionDate +
+        ")"
+    );
+  }
+  const guard = 60; // seconds of latency slack (build → validated close)
+  let interval = PAYMENT_INTERVAL;
+  let total = term;
+  if (typeof vaultNode.RedemptionDate === "number") {
+    const usable = vaultNode.RedemptionDate - 60 - nowRipple - guard;
+    if (
+      nowRipple + guard + interval * total >=
+      vaultNode.RedemptionDate - 60
+    ) {
+      const maxTotal = Math.floor(usable / interval);
+      if (maxTotal >= 1) {
+        total = Math.min(total, maxTotal); // 1. shorten the term
+      } else {
+        interval = Math.floor(usable / Math.max(total, 1)); // 2. the interval
+        if (interval < MIN_PAYMENT_INTERVAL) {
+          interval = MIN_PAYMENT_INTERVAL;
+          total = Math.min(term, Math.floor(usable / MIN_PAYMENT_INTERVAL));
+        }
+        if (interval < MIN_PAYMENT_INTERVAL || total < 1) {
+          throw new Error(
+            "vault redemption window too short for any legal payment " +
+              "schedule (usable " +
+              usable +
+              "s) — create a vault with a longer RedemptionDate"
+          );
+        }
+      }
+    }
+  }
+  const grace = Math.min(GRACE_PERIOD, interval);
+
   const baseTx: LoanSet = {
     TransactionType: "LoanSet",
     Account: brokerWallet.classicAddress,
@@ -59,9 +124,9 @@ export async function createLoan(
     PrincipalRequested: principalDrops,
     Counterparty: borrowerWallet.classicAddress,
     InterestRate: interestRate,
-    PaymentTotal: term,
-    PaymentInterval: PAYMENT_INTERVAL,
-    GracePeriod: GRACE_PERIOD,
+    PaymentTotal: total,
+    PaymentInterval: interval,
+    GracePeriod: grace,
   };
 
   const prepared = await client.autofill(baseTx);
@@ -119,7 +184,7 @@ export async function createLoan(
     vaultId,
     principal: principalDrops,
     interestRate,
-    term,
+    term: total, // effective payment count (fit may shorten it)
     borrower: borrowerWallet.classicAddress,
     status: "active",
     txHashSet: setResult.result.hash,

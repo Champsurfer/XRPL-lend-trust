@@ -27,8 +27,8 @@ export async function createVault(
     Asset: { currency: "XRP" },
     Flags: 0,
     VaultKind: 1, // close-ended
-    SubscriptionDate: nowRipple + 3600,
-    RedemptionDate: nowRipple + 3600 + 31536000, // 1-year investment period
+    SubscriptionDate: nowRipple + 60, // must be ahead of the parent ledger's close time at validation — tecEXPIRED otherwise (xrpl.org VaultCreate Error Cases); +60s covers autofill + submit latency
+    RedemptionDate: nowRipple + 31536000, // 1-year investment period
   };
   const prepared = await client.autofill(tx);
   const signed = wallet.sign(prepared);
