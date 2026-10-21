@@ -23,7 +23,7 @@ Completed: Three-column dark-theme UI built for XRPLendTrust.
     amber #D97706 accent, Inter for text, JetBrains Mono for hashes.
 
 Verified: build 0/0, UI renders, safety grep 0.
-Commit: <HASH_PLACEHOLDER>
+Commit: 4caae2d
 Next single action: The Public Repo (push to GitHub).
 
 ## 2026-10-14 — Chamber A3, The Broker (SEALED)
