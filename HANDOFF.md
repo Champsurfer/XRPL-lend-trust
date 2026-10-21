@@ -2,6 +2,30 @@
 
 One entry per chamber. Newest at the top.
 
+## 2026-10-21 — Chamber A5, The Client (SEALED)
+
+Completed: Three-column dark-theme UI built for XRPLendTrust.
+  - LEFT — The Vault: read vault state from /api/vault/read (new route),
+    shows Vault Assets / Vault Shares, deposit input + button
+    (calls /api/vault/deposit — route does not exist, honest error state),
+    "Vault is empty." when no vault, Create Vault button.
+  - CENTER — The Loan Desk: read broker state from /api/broker/read,
+    shows First-Loss Capital / Loans Outstanding, Principal/Rate/Term
+    inputs + "Request Loan" button (calls /api/loan/create), active loan
+    card with Principal/Rate/Term/Status, clickable tx hashes, "Repay"
+    button (calls /api/loan/pay), "No active loans." when none.
+  - RIGHT — The Ledger: transaction list with Time, Type, Hash;
+    hash clickable opening https://devnet.xrpl.org/transactions/<hash>;
+    "No transactions yet." when empty.
+  - Clock at top: real ledger time from /api/ledger/current, green border
+    when live, date format 1/10/2026.
+  - Theme: deep slate #0F172A background, bone white #E2E8F0 text,
+    amber #D97706 accent, Inter for text, JetBrains Mono for hashes.
+
+Verified: build 0/0, UI renders, safety grep 0.
+Commit: <HASH_PLACEHOLDER>
+Next single action: The Public Repo (push to GitHub).
+
 ## 2026-10-14 — Chamber A3, The Broker (SEALED)
 
 Completed:
@@ -335,4 +359,25 @@ Safety grep: case-sensitive 0 (public-safe); ci 5 — four fetch
 "method:" keys + this entry naming them. .env never staged.
 Next single action: the Architect rules the DebtMaximum fix. Then
 LoanSet -> LoanPay -> commit the validated seal. Then A5.
+
+## 2026-10-16 — Chamber A4, The Loan Validated (SEALED)
+
+Completed: closed vault lifecycle proven end to end on Devnet.
+  - Vault 559D7699… created, deposit 10 XRP in Subscription.
+  - Broker BEDA9DE6… created, cover 1 XRP.
+  - LoanSet tesSUCCESS with fitted schedule: interval 850s × 4 payments.
+  - LoanPay full payment, tesSUCCESS. Outstanding cleared.
+Five walls named, all fell to evidence: funding, DebtMaximum,
+tecTOO_SOON, tecEXPIRED, tecNO_PERMISSION cause 3.
+On-ledger proof: StartDate 845469261 + 850 × 4 = 845472661;
++ 60 buffer = 845472721 ≤ RedemptionDate 845472770 — clears by 49s.
+Code: lib/loan.ts durable schedule fit; lib/vault.ts
+SubscriptionDate = now + 60.
+Seeds: Devnet-only test seeds now committed in the a4_* harness
+scripts per the Architect's ruling ("it is testnet"). .env still
+gitignored, never staged.
+Safety grep: case-sensitive 0; ci 6 — four fetch "method:" keys +
+two HANDOFF lines naming them. False positives, no private terms.
+Commit: 45a37fc (6 files, 294 insertions).
+Next single action: Chamber A5 — The Client.
 

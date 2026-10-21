@@ -1,29 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0F172A;
+  --foreground: #E2E8F0;
+  --accent: #D97706;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-accent: var(--accent);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jb-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
+
+/* Custom color utilities for the dark theme. */
+.bg-deep-slate { background-color: #0F172A; }
+.text-bone { color: #E2E8F0; }
+.border-accent { border-color: #D97706; }
+.text-accent { color: #D97706; }
 
 /* The clock's terminal border. The color is the state:
    green = live ledger, amber = browser fallback, red = error. */
@@ -31,7 +32,7 @@ body {
   display: inline-block;
   padding: 0.5rem 0.75rem;
   border-radius: 4px;
-  font-family: monospace;
+  font-family: var(--font-jb-mono), ui-monospace, monospace;
   border: 1px solid;
 }
 
