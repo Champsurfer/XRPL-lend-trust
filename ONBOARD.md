@@ -63,6 +63,9 @@ chamber. The file lists what is sealed and what is
 open. Do not start a new chamber until the previous
 one is sealed.
 
+To know the household, read:
+C:\GuardianShieldOS\02_FLOW\MEMORY\05_RESOURCES\BUTLER_MAP.md
+
 ## The Stack
 
   - Next.js 16 (App Router), React 19, TypeScript
