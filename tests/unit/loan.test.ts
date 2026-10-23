@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { createLoan } from "../lib/loan";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createLoan } from "../../lib/loan";
 
 // Mock Client for schedule fit testing - the createLoan function reads vault state
 vi.mock("xrpl", () => {
   const mockClient = {
     request: vi.fn(),
     autofill: vi.fn(),
-    submitAndWait: vi.fn().mockResolvedResult({
+    submitAndWait: vi.fn().mockResolvedValue({
       result: {
         meta: { TransactionResult: "tesSUCCESS" },
         hash: "mocked-hash",
@@ -17,13 +17,20 @@ vi.mock("xrpl", () => {
     disconnect: vi.fn().mockResolvedValue(undefined),
   };
 
+  const MockWallet = vi.fn().mockImplementation(() => ({
+    classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
+    seed: "testseed1234567890abcdef",
+    sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),
+  }));
+  MockWallet.fromSeed = vi.fn().mockReturnValue({
+    classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
+    seed: "testseed1234567890abcdef",
+    sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),
+  });
+
   return {
     Client: vi.fn().mockReturnValue(mockClient),
-    Wallet: vi.fn().mockImplementation(() => ({
-      classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
-      seed: "testseed1234567890abcdef",
-      sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),
-    })),
+    Wallet: MockWallet,
   };
 });
 
@@ -93,7 +100,7 @@ describe("createLoan schedule fit", () => {
     });
 
     // The createLoan function should throw a clear error, not tecNO_PERMISSION
-    const { createLoan } = await import("../lib/loan");
+    const { createLoan } = await import("../../lib/loan");
 
     // This should throw with a clear message about vault not being in investment phase
     // or about schedule fitting failing
@@ -125,9 +132,10 @@ describe("createLoan schedule fit", () => {
     // Usable time is very limited
     const usable = 1000; // very small window
 
+    let maxTotal = 0;
     if (typeof {}.RedemptionDate === "number") {
       // This would trigger the else branch - interval shortening
-      const maxTotal = Math.floor(usable / interval);
+      maxTotal = Math.floor(usable / interval);
       if (maxTotal >= 1) {
         total = Math.min(total, maxTotal); // 1. shorten the term FIRST
       } else {

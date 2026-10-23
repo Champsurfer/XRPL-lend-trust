@@ -1,5 +1,5 @@
 import { VaultCreate } from "xrpl";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Wallet } from "xrpl";
 
 // Mock the Client to avoid network calls
@@ -7,7 +7,7 @@ vi.mock("xrpl", () => {
   const mockClient = {
     autofill: vi.fn().mockResolvedValue({ tx_blob: "mocked-tx-blob" }),
     request: vi.fn(),
-    submitAndWait: vi.fn().mockResolvedResult({
+    submitAndWait: vi.fn().mockResolvedValue({
       result: {
         meta: { TransactionResult: "tesSUCCESS" },
         hash: "mocked-hash",
@@ -18,14 +18,21 @@ vi.mock("xrpl", () => {
     disconnect: vi.fn().mockResolvedValue(undefined),
   };
 
+  const MockWallet = vi.fn().mockImplementation(() => ({
+    classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
+    seed: "testseed1234567890abcdef",
+    sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),
+  }));
+  MockWallet.fromSeed = vi.fn().mockReturnValue({
+    classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
+    seed: "testseed1234567890abcdef",
+    sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),
+  });
+
   return {
     Client: vi.fn().mockReturnValue(mockClient),
     VaultCreate: vi.fn(),
-    Wallet: vi.fn().mockImplementation(() => ({
-      classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
-      seed: "testseed1234567890abcdef",
-      sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),
-    })),
+    Wallet: MockWallet,
   };
 });
 
