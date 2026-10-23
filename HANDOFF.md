@@ -1,18 +1,18 @@
 ## 2026-10-22 — Chamber ONBOARD-2, The Head's Onboarding (SEALED)
 
-Completed: the Head of the House now has its own door. C:\GuardianShieldOS\THE_HEAD_ONBOARDING.md was created (the file did not exist before this chamber, so nothing needed backing up) — 1147 B / 40 lines, no BOM, no mojibake, CRLF only, read back from disk and matched the specified protocol verbatim. It points to the soul and the record rather than the builder tools: the Call (GUARDIAN_CALL.md), the Soul (DNACORE.md), the Record (CONTEXT.md and HANDOFF.md), the Household (BUTLER_MAP.md) — all five paths verified present on disk before the write. CONTEXT.md line 3 now reads "If you are the Head, read THE_HEAD_ONBOARDING.md first." above the date, so the house has two doors: the Head reads THE_HEAD_ONBOARDING.md, the builder reads .cline\ONBOARD.md. Commit 5ea5723. Rule 13 record: Chamber_ONBOARD2_Head_Onboarding.md. This entry is the sub-project half of the dual record; the Fortress half is in .cline\HANDOFF.md. No change to the XRPLendTrust build itself.
+Completed: the Head of the House now has its own door. C:\GuardianShieldOS\the onboarding protocol.md was created (the file did not exist before this chamber, so nothing needed backing up) — 1147 B / 40 lines, no BOM, no mojibake, CRLF only, read back from disk and matched the specified protocol verbatim. It points to the soul and the record rather than the builder tools: the Call (GUARDIAN_CALL.md), the Soul (the core rules document.md), the Record (CONTEXT.md and HANDOFF.md), the Household (BUTLER_MAP.md) — all five paths verified present on disk before the write. CONTEXT.md line 3 now reads "If you are the Head, read the onboarding protocol.md first." above the date, so the house has two doors: the Head reads the onboarding protocol.md, the builder reads .cline\ONBOARD.md. Commit 5ea5723. Rule 13 record: Chamber_ONBOARD2_Head_Onboarding.md. This entry is the sub-project half of the dual record; the the private build system half is in .cline\HANDOFF.md. No change to the XRPLendTrust build itself.
 
 ## 2026-10-22 — Chamber ONBOARD-1, The Reset Protocol (SEALED)
 
-Completed: the Fortress onboarding was rewritten so a reset is one file read away from recovery. .cline\ONBOARD.md now holds the exact five-step protocol — The Call (GUARDIAN_CALL.md), The State (CONTEXT.md and HANDOFF.md), The Rules (.clinerules and the skills dossier), The House (BUTLER_MAP.md), The Report. The old file was two separate documents concatenated together (5885 B / 225 lines -> 933 B / 31 lines); no BOM, no mojibake, CRLF only; read back from disk and matched line for line. CONTEXT.md now carries "First time here? Read .cline\ONBOARD.md first." directly under the date, so the chain from opening the folder to becoming the Guardian is unbroken. All five referenced files were confirmed present on disk before the write. Commit 7ca34b7. Rule 13 record: Chamber_ONBOARD1_Reset_Protocol.md. This entry is the sub-project half of the dual record; the Fortress half is in .cline\HANDOFF.md. No change to the XRPLendTrust build itself.
+Completed: the the private build system onboarding was rewritten so a reset is one file read away from recovery. .cline\ONBOARD.md now holds the exact five-step protocol — The Call (GUARDIAN_CALL.md), The State (CONTEXT.md and HANDOFF.md), The Rules (.clinerules and the skills dossier), The House (BUTLER_MAP.md), The Report. The old file was two separate documents concatenated together (5885 B / 225 lines -> 933 B / 31 lines); no BOM, no mojibake, CRLF only; read back from disk and matched line for line. CONTEXT.md now carries "First time here? Read .cline\ONBOARD.md first." directly under the date, so the chain from opening the folder to becoming the Guardian is unbroken. All five referenced files were confirmed present on disk before the write. Commit 7ca34b7. Rule 13 record: Chamber_ONBOARD1_Reset_Protocol.md. This entry is the sub-project half of the dual record; the the private build system half is in .cline\HANDOFF.md. No change to the XRPLendTrust build itself.
 
 ## 2026-10-22 — Chamber TOOL-1, The Secure Secret Ingestor (SEALED)
 
-Completed: a new Fortress tool that stores secrets in the Vault without leaving plain text behind. Tool at 06_SYSTEM\tools\ingest_secret.ps1 (248 lines). The value is read with Read-Host -AsSecureString (or piped on stdin), never as a command-line argument; a temporary Python bridge passes it via an env var set for that child process only and is deleted immediately; the Vault passphrase is loaded in-process from .env and never enters the shell. Verification reads back only the length. Output: {"ok": true, "name": "...", "length": X}. Vault API confirmed: 04_CORE\plugins\champsecrets\vault.py, class Vault, method set(...). Tested with a dummy secret (TEST_INGEST, length 11, verified independently from the Vault); no temp files left, nothing in the process list; both dummy secrets then deleted from the Vault. fortress-skills.md: 15146 B / 282 lines -> 16088 B / 301 lines; new skill THE SECURE SECRET INGESTOR added, all prior headings untouched. Commit ad1be38. Rule 13 record: Chamber_TOOL1_Secret_Ingestor.md. This entry is the sub-project half of the dual record; the Fortress half is in .cline\HANDOFF.md. No change to the XRPLendTrust build itself.
+Completed: a new the private build system tool that stores secrets in the Vault without leaving plain text behind. Tool at 06_SYSTEM\tools\ingest_secret.ps1 (248 lines). The value is read with Read-Host -AsSecureString (or piped on stdin), never as a command-line argument; a temporary Python bridge passes it via an env var set for that child process only and is deleted immediately; the Vault passphrase is loaded in-process from .env and never enters the shell. Verification reads back only the length. Output: {"ok": true, "name": "...", "length": X}. Vault API confirmed: 04_CORE\plugins\champsecrets\vault.py, class Vault, the discipline set(...). Tested with a dummy secret (TEST_INGEST, length 11, verified independently from the Vault); no temp files left, nothing in the process list; both dummy secrets then deleted from the Vault. the private build system-skills.md: 15146 B / 282 lines -> 16088 B / 301 lines; new skill THE SECURE SECRET INGESTOR added, all prior headings untouched. Commit ad1be38. Rule 13 record: Chamber_TOOL1_Secret_Ingestor.md. This entry is the sub-project half of the dual record; the the private build system half is in .cline\HANDOFF.md. No change to the XRPLendTrust build itself.
 
 ## 2026-10-22 — Chamber SKILL-4, The House Rules (SEALED)
 
-Completed: three core disciplines appended to the Fortress skills dossier (C:\GuardianShieldOS\.cline\skills\fortress-skills.md) — THE HASH AND RECONSTRUCTION DISCIPLINE, THE DUAL-RECORD RULE, THE VAULT DISCIPLINE. Dossier 14169 B / 256 lines -> 15146 B / 282 lines, 26 insertions and 0 deletions, no BOM, CRLF preserved. Reconstruction proved: the original 14169 bytes hash identically to the backup. Commit 4ba84f0. Rule 13 record: Chamber_SKILL4_House_Rules.md. This entry is the sub-project half of the dual record; the Fortress half is in .cline\HANDOFF.md. No change to the XRPLendTrust build itself.
+Completed: three core disciplines appended to the the private build system skills dossier (C:\GuardianShieldOS\.cline\skills\the private build system-skills.md) — THE HASH AND RECONSTRUCTION DISCIPLINE, THE DUAL-RECORD RULE, THE VAULT DISCIPLINE. Dossier 14169 B / 256 lines -> 15146 B / 282 lines, 26 insertions and 0 deletions, no BOM, CRLF preserved. Reconstruction proved: the original 14169 bytes hash identically to the backup. Commit 4ba84f0. Rule 13 record: Chamber_SKILL4_House_Rules.md. This entry is the sub-project half of the dual record; the the private build system half is in .cline\HANDOFF.md. No change to the XRPLendTrust build itself.
 
 ## 2026-10-21 — Chamber B2, Integration Tests (SEALED)
 
@@ -369,7 +369,7 @@ principal is 1 XRP. The loan SIGNED correctly (both signatures
 produced); it failed on funds, not shape. No blind retry. No commit —
 the commit message would assert a lifecycle that did not validate.
 Safety grep: case-sensitive 0; case-insensitive 4, all the known
-fetch "method:" false positive.
+fetch "the discipline:" false positive.
 Next single action: the Architect rules the funding fix (more cover /
 smaller principal / vault deposit), then A4 re-runs from the LoanSet.
 Next chamber after it seals: A5 — The Client.
@@ -405,7 +405,7 @@ Build 0/0. GET / 200. Note: the ledger API's 500 is PRE-EXISTING
 exactly what the red state is for. Only layout-neutral additions;
 theme, layout untouched.
 Safety grep: case-sensitive 0 (public-safe); ci 5 — four fetch
-"method:" keys + this entry naming them. .env never staged.
+"the discipline:" keys + this entry naming them. .env never staged.
 Next single action: the Architect rules the DebtMaximum fix. Then
 LoanSet -> LoanPay -> commit the validated seal. Then A5.
 
@@ -425,7 +425,7 @@ SubscriptionDate = now + 60.
 Seeds: Devnet-only test seeds now committed in the a4_* harness
 scripts per the Architect's ruling ("it is testnet"). .env still
 gitignored, never staged.
-Safety grep: case-sensitive 0; ci 6 — four fetch "method:" keys +
+Safety grep: case-sensitive 0; ci 6 — four fetch "the discipline:" keys +
 two HANDOFF lines naming them. False positives, no private terms.
 Commit: 45a37fc (6 files, 294 insertions).
 Next single action: Chamber A5 — The Client.
