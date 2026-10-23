@@ -2,7 +2,7 @@
 
 ### `XRPL-lend-trust`
 
-> A stand-alone XRP Ledger lending integration. Vaults, brokers, loans,
+> A stand-alone XRP Ledger lending integration. Vaults, brokers, loans
 > and the trust that carries them. Built on XLS-65 and XLS-66.
 > Devnet-ready.
 
@@ -12,7 +12,7 @@
 
 XRPLendTrust is a working, stand-alone integration for the XRP Ledger's
 Lending Protocol. It creates single-asset vaults, sets up loan brokers,
-writes dual-signature loans, and settles payments — end to end, on the
+writes dual-signature loans and settles payments — end to end, on the
 XRPL Devnet, with real transactions and live state.
 
 It is not a tutorial. It is not a mockup. It is a running system.
