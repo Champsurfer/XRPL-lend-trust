@@ -31,7 +31,7 @@ describe("Client Integration - Devnet", () => {
 
   it("autofill and submit VaultCreate on Devnet", async () => {
     const { Wallet } = await import("xrpl");
-    const FUNDED_SEED = "sEdS1b9yAp6uW3tM9dwobL3Ka6Gcentifybcdcefg";
+    const testWallet = Wallet.generate();
     const wallet = Wallet.fromSeed(FUNDED_SEED);
 
     const tx = {

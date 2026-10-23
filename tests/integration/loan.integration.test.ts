@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 const DEVNET_ENDPOINT = "wss://s.devnet.rippletest.net:51233";
 
 const FUNDED_SEED = "sEdS1b9yAp6uW3tM9dwobL3Ka6Gcentifybcdcefg";
-const FUNDED_SEED2 = "sEdS1b9yAp6uW3tM9dwobL3Ka6Gcentifybcd2";
+const borrowerWallet = Wallet.generate();
 
 let client: Client;
 

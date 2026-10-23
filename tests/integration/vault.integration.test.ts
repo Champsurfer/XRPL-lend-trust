@@ -5,7 +5,7 @@ const DEVNET_ENDPOINT = "wss://s.devnet.rippletest.net:51233";
 
 // Devnet-funded test accounts (these are well-known funded accounts on Devnet)
 const FUNDED_SEED = "sEdS1b9yAp6uW3tM9dwobL3Ka6G centifybcdcefg"; // pre-funded on Devnet
-const FUNDED_SEED2 = "sEdS1b9yAp6uW3tM9dwobL3Ka6Gcentifybcd2"; // pre-funded on Devnet
+const vaultWallet2 = Wallet.generate(); // pre-funded on Devnet
 
 let client: Client;
 
