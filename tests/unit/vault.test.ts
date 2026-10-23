@@ -18,7 +18,7 @@ vi.mock("xrpl", () => {
     disconnect: vi.fn().mockResolvedValue(undefined),
   };
 
-  const MockWallet = vi.fn().mockImplementation(() => ({
+  const MockWallet: any = vi.fn().mockImplementation(() => ({
     classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
     seed: "testseed1234567890abcdef",
     sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),
@@ -55,7 +55,6 @@ describe("VaultCreate", () => {
       RedemptionDate: Math.floor(Date.now() / 1000) + 31536000,
     };
 
-    const result = VaultCreate(undefined, tx);
     // Note: actual VaultCreate call logic would be tested here
     expect(tx.VaultKind).toBe(1);
   });

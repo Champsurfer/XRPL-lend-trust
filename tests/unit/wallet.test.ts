@@ -3,7 +3,7 @@ import { getWallet } from "../../lib/wallet";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("xrpl", () => {
-  const MockWallet = vi.fn().mockImplementation(() => ({
+  const MockWallet: any = vi.fn().mockImplementation(() => ({
     classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
     seed: "testseed1234567890abcdef",
     sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),

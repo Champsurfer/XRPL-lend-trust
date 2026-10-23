@@ -17,7 +17,7 @@ vi.mock("xrpl", () => {
     disconnect: vi.fn().mockResolvedValue(undefined),
   };
 
-  const MockWallet = vi.fn().mockImplementation(() => ({
+  const MockWallet: any = vi.fn().mockImplementation(() => ({
     classicAddress: "rTestAddress1234567890abcdef1234567890abcdef1234",
     seed: "testseed1234567890abcdef",
     sign: vi.fn().mockResolvedValue({ tx_blob: "signed-tx-blob" }),
@@ -46,7 +46,6 @@ describe("createLoan schedule fit", () => {
       RedemptionDate: Math.floor(Date.now() / 1000) + 31536000, // 1 year
     };
 
-    // @ts-expect-error - mocking client request
     ;(await import("xrpl")).Client.prototype.request = vi.fn().mockResolvedValue({
       result: { node: mockVaultNode },
     });
@@ -94,7 +93,6 @@ describe("createLoan schedule fit", () => {
       RedemptionDate: Math.floor(Date.now() / 1000) + 100, // too close
     };
 
-    // @ts-expect-error - mocking client request
     ;(await import("xrpl")).Client.prototype.request = vi.fn().mockResolvedValue({
       result: { node: mockVaultNode },
     });
@@ -132,19 +130,15 @@ describe("createLoan schedule fit", () => {
     // Usable time is very limited
     const usable = 1000; // very small window
 
-    let maxTotal = 0;
-    if (typeof {}.RedemptionDate === "number") {
-      // This would trigger the else branch - interval shortening
-      maxTotal = Math.floor(usable / interval);
-      if (maxTotal >= 1) {
-        total = Math.min(total, maxTotal); // 1. shorten the term FIRST
-      } else {
-        // Only if term can't be shortened enough, then shorten interval
-        interval = Math.floor(usable / Math.max(total, 1));
-        if (interval < MIN_PAYMENT_INTERVAL) {
-          interval = MIN_PAYMENT_INTERVAL;
-          total = Math.min(term, Math.floor(usable / MIN_PAYMENT_INTERVAL));
-        }
+    let maxTotal = Math.floor(usable / interval);
+    if (maxTotal >= 1) {
+      total = Math.min(total, maxTotal); // 1. shorten the term FIRST
+    } else {
+      // Only if term can't be shortened enough, then shorten interval
+      interval = Math.floor(usable / Math.max(total, 1));
+      if (interval < MIN_PAYMENT_INTERVAL) {
+        interval = MIN_PAYMENT_INTERVAL;
+        total = Math.min(term, Math.floor(usable / MIN_PAYMENT_INTERVAL));
       }
     }
 
