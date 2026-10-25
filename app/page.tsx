@@ -74,6 +74,7 @@ export default function Home() {
   const [loanPrincipal, setLoanPrincipal] = useState("");
   const [loanRate, setLoanRate] = useState("");
   const [loanTerm, setLoanTerm] = useState("");
+  const [brokerId, setBrokerId] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   function addTransaction(type: string, hash: string) {
@@ -383,10 +384,31 @@ export default function Home() {
                   className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
                 />
               </div>
+              {!brokerId && (
+                <button
+                  onClick={async () => {
+                    const res = await fetch('/api/broker/create', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ vaultId: vaultId, coverAmount: "1000000" })
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                      setBrokerId(data.broker.id);
+                      alert('Broker created: ' + data.broker.id);
+                    } else {
+                      alert('Error: ' + data.error);
+                    }
+                  }}
+                  className="bg-yellow-600 text-white px-4 py-2 rounded mt-2"
+                >
+                  Create Broker (1 XRP Cover)
+                </button>
+              )}
               <button
                 onClick={createLoanRow}
-                disabled={!broker || loanPending}
-                className="w-full rounded bg-accent px-3 py-1.5 text-xs font-semibold text-black disabled:opacity-50 hover:bg-[#B45309] transition"
+                disabled={!brokerId || loanPending}
+                className="bg-blue-600 text-white px-4 py-2 rounded mt-2 disabled:opacity-50"
               >
                 {loanPending ? "Creating loan…" : "Request Loan"}
               </button>
