@@ -11,7 +11,16 @@ export async function POST(req: Request) {
     const principal = (body.principal as string) || "1000000"; // 1 XRP
     const rate = typeof body.rate === "number" ? body.rate : 500;
     const term = typeof body.term === "number" ? body.term : 4;
-    if (!brokerId || !vaultId) {
+    if (
+      isNaN(Number(principal)) ||
+      (typeof body.rate !== "undefined" && typeof body.rate !== "number") ||
+      (typeof body.term !== "undefined" && typeof body.term !== "number")
+    ) {
+      return NextResponse.json(
+        { ok: false, error: "Invalid input: principal, rate, and term must be numbers." },
+        { status: 400 }
+      );
+    }
       return NextResponse.json(
         { ok: false, error: "brokerId and vaultId required" },
         { status: 400 }
