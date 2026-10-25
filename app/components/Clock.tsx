@@ -96,7 +96,7 @@ export default function Clock() {
       : "clock-clock clock-clock--fallback";
   const label =
     ledger && ledger.ok === false && ledger.error
-      ? "Local time (ledger error)"
+      ? "Ledger unreachable"
       : "Local time (ledger unreachable)";
   return (
     <div className={stateClass}>
