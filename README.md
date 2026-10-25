@@ -82,6 +82,8 @@ Set the trust line for the asset you want to vault.
 
 Then you are ready to deposit, broker and lend.
 
+For a full walkthrough of the Lending Protocol lifecycle, see [MANUAL.md](./MANUAL.md).
+
 Full setup instructions: see SETUP.md.
 
 ## Demo
