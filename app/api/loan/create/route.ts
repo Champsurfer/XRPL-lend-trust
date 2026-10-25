@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     const principal = (body.principal as string) || "1000000"; // 1 XRP
     const rate = typeof body.rate === "number" ? body.rate : 500;
     const term = typeof body.term === "number" ? body.term : 4;
+
     if (
       isNaN(Number(principal)) ||
       (typeof body.rate !== "undefined" && typeof body.rate !== "number") ||
@@ -21,14 +22,18 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    if (!brokerId || !vaultId) {
       return NextResponse.json(
-        { ok: false, error: "brokerId and vaultId required" },
+        { ok: false, error: "brokerId and vaultId are required" },
         { status: 400 }
       );
     }
+
     const client = await getClient();
     const brokerWallet = await getWallet(client);
     const borrowerWallet = await getBorrowerWallet(client);
+    
     const loan = await createLoan(
       client,
       brokerWallet,
@@ -39,6 +44,7 @@ export async function POST(req: Request) {
       rate,
       term
     );
+
     return NextResponse.json({ ok: true, loan });
   } catch (err) {
     return NextResponse.json(
