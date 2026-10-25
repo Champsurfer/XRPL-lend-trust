@@ -287,7 +287,7 @@ export default function Home() {
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
                     disabled={depositPending}
-                    className="flex-1 rounded bg-[#0F172A] border border-accent/30 px-2 py-1.5 text-xs text-bone placeholder-gray-400 focus:outline-none focus:border-accent font-mono"
+                    className="flex-1 rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
                   />
                   <button
                     onClick={depositVault}
@@ -364,7 +364,7 @@ export default function Home() {
                   value={loanPrincipal}
                   onChange={(e) => setLoanPrincipal(e.target.value)}
                   disabled={loanPending}
-                  className="rounded bg-[#0F172A] border border-accent/30 px-2 py-1.5 text-xs text-bone placeholder-gray-400 focus:outline-none focus:border-accent font-mono"
+                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
                 />
                 <input
                   type="text"
@@ -372,7 +372,7 @@ export default function Home() {
                   value={loanRate}
                   onChange={(e) => setLoanRate(e.target.value)}
                   disabled={loanPending}
-                  className="rounded bg-[#0F172A] border border-accent/30 px-2 py-1.5 text-xs text-bone placeholder-gray-400 focus:outline-none focus:border-accent font-mono"
+                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
                 />
                 <input
                   type="text"
@@ -380,7 +380,7 @@ export default function Home() {
                   value={loanTerm}
                   onChange={(e) => setLoanTerm(e.target.value)}
                   disabled={loanPending}
-                  className="rounded bg-[#0F172A] border border-accent/30 px-2 py-1.5 text-xs text-bone placeholder-gray-400 focus:outline-none focus:border-accent font-mono"
+                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
                 />
               </div>
               <button
