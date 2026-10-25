@@ -59,23 +59,28 @@ export default function Home() {
   const [vaultAssets, setVaultAssets] = useState<string | null>(null);
   const [vaultShares, setVaultShares] = useState<string | null>(null);
   const [vaultError, setVaultError] = useState<string | null>(null);
+  
   const [depositPending, setDepositPending] = useState(false);
   const [depositAmount, setDepositAmount] = useState("");
   const [depositError, setDepositError] = useState<string | null>(null);
+  
   const [brokerPending, setBrokerPending] = useState(false);
   const [broker, setBroker] = useState<BrokerState | null>(null);
   const [brokerError, setBrokerError] = useState<string | null>(null);
   const [brokerCapital, setBrokerCapital] = useState<string | null>(null);
+  
   const [loanPending, setLoanPending] = useState(false);
   const [loan, setLoan] = useState<LoanState | null>(null);
   const [loanError, setLoanError] = useState<string | null>(null);
+  
   const [payPending, setPayPending] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  
   const [loanPrincipal, setLoanPrincipal] = useState("");
   const [loanRate, setLoanRate] = useState("");
   const [loanTerm, setLoanTerm] = useState("");
-  const [brokerId, setBrokerId] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [vaultReady, setVaultReady] = useState(false);
 
   function addTransaction(type: string, hash: string) {
     const time = new Date().toLocaleTimeString("en-ZA", {
@@ -95,7 +100,9 @@ export default function Home() {
         setVault(data.vault);
         setVaultAssets("0");
         setVaultShares("0");
+        setVaultReady(false);
         addTransaction("VaultCreate", data.vault.txHash);
+        setTimeout(() => setVaultReady(true), 12000);
       } else {
         setVaultError(data.error);
       }
@@ -103,24 +110,6 @@ export default function Home() {
       setVaultError(err instanceof Error ? err.message : String(err));
     } finally {
       setVaultPending(false);
-    }
-  }
-
-  async function readVaultState() {
-    if (!vault?.vaultId) return;
-    try {
-      const res = await fetch(`/api/vault/read?id=${vault.vaultId}`, {
-        cache: "no-store",
-      });
-      const data = (await res.json()) as VaultResult;
-      if (data.ok) {
-        setVaultAssets(data.vault.assetsTotal);
-        setVaultShares(data.vault.sharesTotal);
-      } else {
-        setVaultError(data.error);
-      }
-    } catch (err) {
-      setVaultError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -137,9 +126,10 @@ export default function Home() {
       const data = await res.json();
       if (data.ok) {
         setDepositAmount("");
-        addTransaction("VaultDeposit", (data as any).txHash || "(pending)");
+        addTransaction("VaultDeposit", data.txHash || "(pending)");
+        setVaultAssets(prev => prev ? (Number(prev) + Number(depositAmount)).toString() : depositAmount);
       } else {
-        setDepositError((data as { error?: string }).error || "deposit failed");
+        setDepositError(data.error || "deposit failed");
       }
     } catch (err) {
       setDepositError(err instanceof Error ? err.message : String(err));
@@ -149,14 +139,17 @@ export default function Home() {
   }
 
   async function createBroker() {
-    if (!vault) return;
+    if (!vault) {
+      alert("No vault ID. Create a vault first.");
+      return;
+    }
     setBrokerPending(true);
     setBrokerError(null);
     try {
       const res = await fetch("/api/broker/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vaultId: vault.vaultId }),
+        body: JSON.stringify({ vaultId: vault.vaultId, coverAmount: "1000000" }),
       });
       const data = (await res.json()) as BrokerResult;
       if (data.ok) {
@@ -171,23 +164,6 @@ export default function Home() {
       setBrokerError(err instanceof Error ? err.message : String(err));
     } finally {
       setBrokerPending(false);
-    }
-  }
-
-  async function readBrokerState() {
-    if (!broker?.brokerId) return;
-    try {
-      const res = await fetch(`/api/broker/read?id=${broker.brokerId}`, {
-        cache: "no-store",
-      });
-      const data = (await res.json()) as BrokerResult;
-      if (data.ok) {
-        setBrokerCapital(data.broker.coverAvailable);
-      } else {
-        setBrokerError(data.error);
-      }
-    } catch (err) {
-      setBrokerError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -261,6 +237,7 @@ export default function Home() {
       </div>
 
       <div className="flex-1 flex overflow-hidden p-4 gap-4">
+        {/* LEFT COLUMN - VAULT */}
         <div className="w-1/3 flex flex-col gap-3 min-w-0">
           <div className="border border-accent/30 rounded p-4 bg-[#1E293B]/50 flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -274,11 +251,11 @@ export default function Home() {
               <>
                 <div className="flex justify-between text-xs text-slate-400 mb-1">
                   <span>Vault Assets</span>
-                  <span className="font-mono">{vaultAssets ?? "—"} drops</span>
+                  <span className="font-mono">{vaultAssets ?? "0"} drops</span>
                 </div>
                 <div className="flex justify-between text-xs text-slate-400 mb-3">
                   <span>Vault Shares</span>
-                  <span className="font-mono">{vaultShares ?? "—"}</span>
+                  <span className="font-mono">{vaultShares ?? "0"}</span>
                 </div>
 
                 <div className="flex gap-2">
@@ -288,7 +265,7 @@ export default function Home() {
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
                     disabled={depositPending}
-                    className="flex-1 rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
+                    className="flex-1 rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 p-2 text-sm"
                   />
                   <button
                     onClick={depositVault}
@@ -320,6 +297,9 @@ export default function Home() {
                     </a>
                   </p>
                 </div>
+              {vault && !vaultReady && (
+                <p className="text-xs text-slate-500 mt-2">Vault created. Waiting for Investment phase (12s)...</p>
+              )}
               </>
             ) : (
               <>
@@ -339,6 +319,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* CENTER COLUMN - LOAN DESK */}
         <div className="w-1/3 flex flex-col gap-3 min-w-0">
           <div className="border border-accent/30 rounded p-4 bg-[#1E293B]/50 flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -350,7 +331,7 @@ export default function Home() {
 
             <div className="flex justify-between text-xs text-slate-400 mb-1">
               <span>First-Loss Capital</span>
-              <span className="font-mono">{brokerCapital ?? "—"} drops</span>
+              <span className="font-mono">{brokerCapital ?? "0"} drops</span>
             </div>
             <div className="flex justify-between text-xs text-slate-400 mb-3">
               <span>Loans Outstanding</span>
@@ -361,72 +342,60 @@ export default function Home() {
               <div className="grid grid-cols-3 gap-2">
                 <input
                   type="text"
-                  placeholder="Principal (drops)"
+                  placeholder="Principal"
                   value={loanPrincipal}
                   onChange={(e) => setLoanPrincipal(e.target.value)}
-                  disabled={loanPending}
-                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
+                  disabled={loanPending || !!loan}
+                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 p-2 text-sm"
                 />
                 <input
                   type="text"
                   placeholder="Rate"
                   value={loanRate}
                   onChange={(e) => setLoanRate(e.target.value)}
-                  disabled={loanPending}
-                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
+                  disabled={loanPending || !!loan}
+                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 p-2 text-sm"
                 />
                 <input
                   type="text"
                   placeholder="Term"
                   value={loanTerm}
                   onChange={(e) => setLoanTerm(e.target.value)}
-                  disabled={loanPending}
-                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded p-2"
+                  disabled={loanPending || !!loan}
+                  className="rounded bg-gray-800 text-white placeholder-gray-400 border border-gray-600 p-2 text-sm"
                 />
               </div>
-              {!brokerId && (
+              
+              {!broker && (
                 <button
-                  onClick={async () => {
-                    const res = await fetch('/api/broker/create', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ vaultId: vaultId, coverAmount: "1000000" })
-                    });
-                    const data = await res.json();
-                    if (data.ok) {
-                      setBrokerId(data.broker.id);
-                      alert('Broker created: ' + data.broker.id);
-                    } else {
-                      alert('Error: ' + data.error);
-                    }
-                  }}
-                  className="bg-yellow-600 text-white px-4 py-2 rounded mt-2"
+                  onClick={createBroker}
+                  disabled={brokerPending}
+                  className="w-full rounded bg-yellow-600 text-white px-4 py-2 text-sm font-semibold hover:bg-yellow-700 transition disabled:opacity-50"
                 >
-                  Create Broker (1 XRP Cover)
+                  {brokerPending ? "Creating Broker…" : "Create Broker (1 XRP Cover)"}
                 </button>
               )}
+
               <button
                 onClick={createLoanRow}
-                disabled={!brokerId || loanPending}
-                className="bg-blue-600 text-white px-4 py-2 rounded mt-2 disabled:opacity-50"
+                disabled={!broker || !vaultReady || loanPending || !!loan}
+                className="w-full rounded bg-blue-600 text-white px-4 py-2 text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50"
               >
-                {loanPending ? "Creating loan…" : "Request Loan"}
+                {loanPending ? "Creating loan…" : !vaultReady ? "Wait for Vault Phase..." : "Request Loan"}
               </button>
             </div>
 
             {brokerError && (
               <p className="mt-1 text-xs text-red-400">Error: {brokerError}</p>
             )}
+            {loanError && (
+              <p className="mt-1 text-xs text-red-400">Error: {loanError}</p>
+            )}
 
             {loan ? (
               <div className="mt-3 pt-3 border-t border-accent/20">
-                <p className="text-xs font-semibold text-bone">
-                  Loan
-                  {loan.status === "repaid"
-                    ? "Repaid"
-                    : loan.status === "failed"
-                      ? "Failed"
-                      : "Active"}
+                <p className="text-xs font-semibold text-bone mb-2">
+                  Loan {loan.status === "repaid" ? "Repaid" : "Active"}
                 </p>
                 <div className="flex justify-between text-xs text-slate-400 mb-1">
                   <span>Principal</span>
@@ -436,46 +405,16 @@ export default function Home() {
                   <span>Rate</span>
                   <span className="font-mono">{loan.interestRate}</span>
                 </div>
-                <div className="flex justify-between text-xs text-slate-400 mb-1">
+                <div className="flex justify-between text-xs text-slate-400 mb-2">
                   <span>Term</span>
                   <span className="font-mono">{loan.term} payments</span>
                 </div>
-                <div className="flex justify-between text-xs text-slate-400 mb-2">
-                  <span>Borrower</span>
-                  <span className="font-mono text-xs break-all">
-                    {loan.borrower}
-                  </span>
-                </div>
 
-                <div className="mb-2">
-                  <p className="text-xs text-slate-400">Set tx:</p>
-                  <a
-                    href={`https://devnet.xrpl.org/transactions/${loan.txHashSet}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-accent underline font-mono text-xs break-all"
-                  >
-                    {loan.txHashSet}
-                  </a>
-                </div>
-                {loan.txHashPay && (
-                  <div className="mb-2">
-                    <p className="text-xs text-slate-400">Pay tx:</p>
-                    <a
-                      href={`https://devnet.xrpl.org/transactions/${loan.txHashPay}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-accent underline font-mono text-xs break-all"
-                    >
-                      {loan.txHashPay}
-                    </a>
-                  </div>
-                )}
                 {loan.status === "active" && (
                   <button
                     onClick={repayLoan}
                     disabled={payPending}
-                    className="w-full rounded bg-accent px-3 py-1.5 text-xs font-semibold text-black disabled:opacity-50 hover:bg-[#B45309] transition"
+                    className="w-full mt-2 rounded bg-accent px-3 py-1.5 text-xs font-semibold text-black disabled:opacity-50 hover:bg-[#B45309] transition"
                   >
                     {payPending ? "Repaying…" : "Repay"}
                   </button>
@@ -485,13 +424,14 @@ export default function Home() {
                 )}
               </div>
             ) : (
-              <p className="text-xs text-slate-500">No active loans.</p>
+              <p className="text-xs text-slate-500 mt-2">No active loans.</p>
             )}
           </div>
         </div>
 
+        {/* RIGHT COLUMN - LEDGER */}
         <div className="w-1/3 flex flex-col gap-3 min-w-0">
-          <div className="border border-accent/30 rounded p-4 bg-[#1E293B]/50 flex flex-col gap-2">
+          <div className="border border-accent/30 rounded p-4 bg-[#1E293B]/50 flex flex-col gap-2 h-full">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-accent"></div>
               <h2 className="text-sm font-semibold text-accent uppercase tracking-wider">
@@ -499,20 +439,18 @@ export default function Home() {
               </h2>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-2">
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
               {transactions.length === 0 ? (
                 <p className="text-xs text-slate-500">No transactions yet.</p>
               ) : (
                 transactions.map((tx, i) => (
                   <div
                     key={i}
-                    className="flex justify-between items-start gap-2 px-2 py-1.5 rounded bg-[#0F172A]/30 border border-accent/10"
+                    className="flex flex-col gap-1 px-2 py-1.5 rounded bg-[#0F172A]/30 border border-accent/10"
                   >
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs text-slate-400 font-mono">
-                        {tx.time}
-                      </span>
-                      <span className="text-xs text-bone">{tx.type}</span>
+                    <div className="flex justify-between text-xs text-slate-400 font-mono">
+                      <span>{tx.time}</span>
+                      <span>{tx.type}</span>
                     </div>
                     <a
                       href={`https://devnet.xrpl.org/transactions/${tx.hash}`}
@@ -532,5 +470,3 @@ export default function Home() {
     </div>
   );
 }
-
-

@@ -94,6 +94,14 @@ Video: [link to demo video]
 The demo script and step-by-step reproduction instructions are in
 DEMO.md.
 
+## How to Use the App
+
+1. **Create Vault** — no amount required.
+2. **Deposit 10000000 drops IMMEDIATELY.**
+3. **Create Broker.**
+4. **Request Loan** (Principal 1000000, Rate 500, Term 4) AFTER the 12s timer.
+5. **Repay.**
+
 ## How It Works
 
 At a high level:
